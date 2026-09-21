@@ -26,6 +26,19 @@ body {
 
 .wrap { max-width: 860px; margin: 0 auto; }
 
+/* 맨 위 학번·이름. 과제 제출용 식별 표시이므로 항상 첫 화면에 보여야 한다. */
+.identity {
+  margin: 0 0 16px;
+  padding: 8px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
 header { margin-bottom: 24px; }
 
 h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.02em; }
@@ -49,9 +62,16 @@ h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.02em; }
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  grid-template-areas:
+    "draw summary"
+    "draw detail";
   gap: 24px;
   align-items: start;
 }
+
+.layout > .draw    { grid-area: draw; }
+.layout > .summary { grid-area: summary; }
+.layout > .detail  { grid-area: detail; }
 
 .panel {
   background: var(--surface);
@@ -99,8 +119,6 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* --- 결과 영역 --- */
 .result-head {
   display: flex; align-items: center; gap: 16px;
-  padding-bottom: 16px; margin-bottom: 4px;
-  border-bottom: 1px solid var(--border);
 }
 
 #digit {
@@ -162,6 +180,18 @@ footer {
 footer a { color: var(--accent); }
 
 @media (max-width: 720px) {
-  .layout { grid-template-columns: 1fr; }
-  #digit { font-size: 60px; }
+  /* 결과를 캔버스 위로: 폰에서 그린 직후 스크롤 없이 답이 보이도록 한다 */
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "summary"
+      "draw"
+      "detail";
+    gap: 16px;
+  }
+  #digit { font-size: 52px; min-width: 52px; }
+  #confidence { font-size: 18px; }
+  .summary { padding: 12px 16px; }
+  .summary h2 { margin-bottom: 8px; }
+  body { padding-top: 16px; }
 }

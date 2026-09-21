@@ -10,6 +10,8 @@
 </head>
 <body>
 <div class="wrap">
+  <p class="identity">학번 2026xxxx · 이름 홍길동</p>
+
   <header>
     <h1>손글씨 숫자 인식</h1>
     <p class="subtitle">숫자 하나를 그리면 바로 알아맞힙니다. 추론은 전부 브라우저 안에서 일어납니다.</p>
@@ -19,7 +21,7 @@
   </header>
 
   <div class="layout">
-    <section class="panel">
+    <section class="panel draw">
       <h2>그리기</h2>
       <canvas id="pad" width="280" height="280"
               aria-label="숫자를 그리는 영역"></canvas>
@@ -29,7 +31,7 @@
       <p class="hint">칸을 크게 채워 한 글자만 그리세요. 마우스·터치 모두 됩니다.</p>
     </section>
 
-    <section class="panel">
+    <section class="panel summary">
       <h2>인식 결과</h2>
       <div class="result-head">
         <div id="digit" class="empty" aria-live="polite">–</div>
@@ -38,7 +40,9 @@
           <div id="confidence-label">아직 그린 내용이 없습니다</div>
         </div>
       </div>
+    </section>
 
+    <section class="panel detail">
       <div class="bars" id="bars"></div>
 
       <h2 style="margin-top:20px">모델이 보는 이미지</h2>
