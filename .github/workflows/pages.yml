@@ -1,0 +1,43 @@
+# web_version/ 을 GitHub Pages 사이트 루트로 배포한다.
+# 빌드 단계가 없다 — 폴더를 그대로 올린다.
+name: Deploy web_version to Pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "web_version/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포는 한 번에 하나만. 진행 중인 실행은 취소하지 않는다.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 가중치 파일이 있는지 확인
+        run: |
+          test -f web_version/model/weights.json \
+            || { echo "web_version/model/weights.json 이 없습니다. desktop_version에서 'python -m src.export_weights' 를 실행해 커밋하세요."; exit 1; }
+          echo "weights.json $(du -h web_version/model/weights.json | cut -f1)"
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web_version
+      - id: deployment
+        uses: actions/deploy-pages@v4

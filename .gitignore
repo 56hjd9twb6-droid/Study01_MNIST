@@ -1,0 +1,13 @@
+# MNIST 원본 데이터 — 스크립트로 언제든 다시 받는다 (약 11MB)
+desktop_version/data/
+
+# 파이썬 가상환경
+desktop_version/.venv/
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# 학습 산출물은 커밋한다 (web_version이 이것으로 동작해야 하므로)
+# desktop_version/models/mlp.npz  <- 일부러 무시하지 않음

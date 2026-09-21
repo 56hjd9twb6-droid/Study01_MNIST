@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>손글씨 숫자 인식</title>
+<meta name="description" content="브라우저에서 순수 자바스크립트로 동작하는 손글씨 숫자 인식기. 서버 없이 기기 안에서 추론합니다.">
+<link rel="stylesheet" href="./css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>✏️</text></svg>">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>손글씨 숫자 인식</h1>
+    <p class="subtitle">숫자 하나를 그리면 바로 알아맞힙니다. 추론은 전부 브라우저 안에서 일어납니다.</p>
+    <div class="status" id="status" role="status" aria-live="polite">
+      <span class="dot"></span><span id="status-text">모델을 불러오는 중…</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="panel">
+      <h2>그리기</h2>
+      <canvas id="pad" width="280" height="280"
+              aria-label="숫자를 그리는 영역"></canvas>
+      <div class="controls">
+        <button type="button" id="clear">지우기</button>
+      </div>
+      <p class="hint">칸을 크게 채워 한 글자만 그리세요. 마우스·터치 모두 됩니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>인식 결과</h2>
+      <div class="result-head">
+        <div id="digit" class="empty" aria-live="polite">–</div>
+        <div class="result-meta">
+          <div id="confidence">—</div>
+          <div id="confidence-label">아직 그린 내용이 없습니다</div>
+        </div>
+      </div>
+
+      <div class="bars" id="bars"></div>
+
+      <h2 style="margin-top:20px">모델이 보는 이미지</h2>
+      <div class="preview-wrap">
+        <canvas id="preview" width="28" height="28"
+                aria-label="28×28로 정규화된 입력"></canvas>
+        <p class="preview-text">
+          그린 그림을 잘라내고 20px에 맞춰 줄인 뒤,
+          무게중심을 기준으로 28×28 한가운데에 놓은 결과입니다.
+          MNIST와 같은 방식입니다.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    784 → 128 → 64 → 10 다층 퍼셉트론 · 테스트 정확도 98.6% ·
+    NumPy로 학습하고 순수 자바스크립트로 추론합니다 ·
+    <a href="./test.html">파이썬 일치 검증</a>
+  </footer>
+</div>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>일치 검증 — 웹 추론 vs 파이썬</title>
+<style>
+  body { font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+         background: #12141a; color: #e6e8ee; padding: 24px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 18px; }
+  .pass { color: #4ade80; }
+  .fail { color: #f87171; }
+  .muted { color: #9aa3b2; }
+  pre { background: #1a1d26; padding: 12px 16px; border-radius: 8px; overflow-x: auto;
+        border: 1px solid #2a2f3d; }
+  #summary { font-size: 16px; font-weight: 700; margin: 16px 0; }
+</style>
+</head>
+<body>
+<h1>일치 검증 — 웹 추론 vs 파이썬</h1>
+<p class="muted">
+  desktop_version이 내보낸 fixtures.json과 비교해, 이 브라우저의 전처리·추론 결과가
+  파이썬 구현과 같은지 확인합니다.
+</p>
+<div id="summary">실행 중…</div>
+<pre id="log"></pre>
+
+<script type="module">
+// 정적 import는 브라우저 모듈 캐시를 타기 때문에, 방금 고친 파일이 아니라
+// 이전 버전을 검증해 놓고 초록불을 띄울 수 있다. 검증 페이지에서는 그게 치명적이므로
+// 매번 새 쿼리를 붙여 동적으로 불러온다.
+const bust = `?t=${Date.now()}`;
+const { MLP } = await import(`./js/model.js${bust}`);
+const { normalize } = await import(`./js/preprocess.js${bust}`);
+
+const log = document.getElementById("log");
+const summary = document.getElementById("summary");
+let passed = 0;
+let failed = 0;
+
+function line(ok, text) {
+  const span = document.createElement("span");
+  span.className = ok ? "pass" : "fail";
+  span.textContent = `${ok ? "PASS" : "FAIL"}  ${text}\n`;
+  log.appendChild(span);
+  ok ? passed++ : failed++;
+}
+
+function note(text) {
+  const span = document.createElement("span");
+  span.className = "muted";
+  span.textContent = `      ${text}\n`;
+  log.appendChild(span);
+}
+
+function maxAbsDiff(a, b) {
+  let worst = 0;
+  for (let i = 0; i < a.length; i++) worst = Math.max(worst, Math.abs(a[i] - b[i]));
+  return worst;
+}
+
+try {
+  const model = await MLP.load("./model/weights.json");
+  note(`모델 구조 ${model.sizes.join(" -> ")}, 파라미터 ${model.paramCount.toLocaleString()}개`);
+
+  const fixtures = await (await fetch("./model/fixtures.json")).json();
+  note(`표본 ${fixtures.samples.length}개\n`);
+
+  let worstPre = 0;
+  let worstProb = 0;
+  let labelHits = 0;
+
+  for (const s of fixtures.samples) {
+    // 1. 전처리가 파이썬과 일치하는가
+    const gray = Float64Array.from(s.raw, (v) => v / 255);
+    const vec = normalize(gray, 28, 28);
+    const preDiff = maxAbsDiff(vec, s.normalized);
+    worstPre = Math.max(worstPre, preDiff);
+
+    // 2. 추론이 파이썬과 일치하는가
+    const probs = model.forward(vec);
+    const probDiff = maxAbsDiff(probs, s.probs);
+    worstProb = Math.max(worstProb, probDiff);
+
+    const predicted = probs.indexOf(Math.max(...probs));
+    if (predicted === s.predicted) labelHits++;
+
+    const ok = preDiff < 1e-5 && probDiff < 1e-4 && predicted === s.predicted;
+    line(ok, `숫자 ${s.label}: 전처리차=${preDiff.toExponential(2)} ` +
+             `확률차=${probDiff.toExponential(2)} 예측=${predicted}(기대 ${s.predicted})`);
+  }
+
+  note("");
+  line(worstPre < 1e-5, `전처리 최대 오차 ${worstPre.toExponential(2)} < 1e-5`);
+  line(worstProb < 1e-4, `확률 최대 오차 ${worstProb.toExponential(2)} < 1e-4`);
+  line(labelHits === fixtures.samples.length,
+       `예측 일치 ${labelHits}/${fixtures.samples.length}`);
+} catch (err) {
+  line(false, `예외 발생: ${err.message}`);
+  console.error(err);
+}
+
+summary.textContent = failed === 0
+  ? `전체 통과 (${passed}건)`
+  : `실패 ${failed}건 / 통과 ${passed}건`;
+summary.className = failed === 0 ? "pass" : "fail";
+window.__testResult = { passed, failed };
+</script>
+</body>
+</html>
