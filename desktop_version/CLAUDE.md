@@ -55,6 +55,27 @@ data/                 MNIST 원본 (커밋 안 함)
 float64로 돌린다 — float32에서는 h가 유효숫자에 묻혀 상대오차가 1e-2까지
 벌어져서 맞는 코드도 틀린 것처럼 보인다. 모델 자체는 float32로 학습한다.
 
+### macOS 26 + 시스템 Tk 8.5.9 에서는 창이 그려지지 않는다
+
+확인된 환경 문제다. macOS 26.6 기본 파이썬(3.9)이 쓰는 Tk는 8.5.9(2010년)이고,
+이 조합에서는 창은 뜨지만 위젯이 그려지지 않아 **흰 화면만 보인다**.
+앱 실행 시 나오는 `DEPRECATION WARNING: The system version of Tk is deprecated`
+가 그 신호다.
+
+코드 문제가 아니다 — `tests/test_app_logic.py` 는 통과하고, 실제로 그림을 그리면
+추론도 정상 동작한다. 화면에 출력만 안 된다.
+
+고치려면 Tk 8.6 이 포함된 파이썬이 필요하다. python.org 설치본을 쓰고
+그 인터프리터로 가상환경을 다시 만들 것:
+
+```bash
+/Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -c "import tkinter; print(tkinter.TkVersion)"   # 8.6 이상이어야 한다
+```
+
+웹 버전은 이 문제와 무관하다. 같은 모델·같은 전처리를 쓰므로 결과도 동일하다.
+
 ### GUI는 캔버스를 두 번 그린다
 
 tkinter Canvas는 픽셀을 되읽을 수 없다. 그래서 `app.py` 는 같은 획을
